@@ -40,7 +40,7 @@ export default function GalleryItem({ img, idx, onClick }) {
     >
       <img 
         ref={imgRef}
-        src={encodeURI(`/images/${img.thumb || img.src}`)} 
+        src={encodeURI(`/${img.thumb || img.src}`)} 
         alt="gallery image" 
         className={`w-full h-full object-cover block transition-all duration-700 group-hover:scale-105 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         loading={idx < 20 ? "eager" : "lazy"}

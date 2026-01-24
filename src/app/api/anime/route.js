@@ -4,22 +4,9 @@ import { NextResponse } from 'next/server';
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const typeParam = searchParams.get('type');
-  const categoryParam = searchParams.get('category');
   
-  // 支持的分类
-  const validCategories = ['anime', 'landscape', 'portrait'];
-  
-  // 获取图片数据,支持分类筛选
-  let { pc, mobile } = getImages(
-    validCategories.includes(categoryParam) ? categoryParam : null
-  );
-
-  // 如果分类为空，回退到全部图片
-  if ((pc.length === 0 && mobile.length === 0) && categoryParam) {
-    const allImages = getImages();
-    pc = allImages.pc;
-    mobile = allImages.mobile;
-  }
+  // 获取动漫分类的图片
+  const { pc, mobile } = getImages('anime');
 
   let list;
 
@@ -38,7 +25,7 @@ export async function GET(request) {
   }
 
   if (list.length === 0) {
-    return new Response('No images found', { status: 404 });
+    return new Response('No anime images found', { status: 404 });
   }
 
   const randomImage = list[Math.floor(Math.random() * list.length)];
@@ -50,8 +37,6 @@ export async function GET(request) {
 
   const redirectUrl = encodeURI(imageUrl);
 
-  // 使用相对路径重定向，避免 EdgeOne 内部域名泄露问题
-  // NextResponse.redirect 要求绝对路径，所以我们手动构建 Response
   return new Response(null, {
     status: 302,
     headers: {

@@ -2,19 +2,30 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import GalleryItem from './GalleryItem';
 import ThemeToggle from '@/components/ThemeToggle';
 
-export default function GalleryClient({ initialImages }) {
+export default function GalleryClient({ initialImages, currentCategory }) {
   const [allImages, setAllImages] = useState(initialImages || []);
   const [selectedImage, setSelectedImage] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(currentCategory || 'all');
   const containerRef = useRef(null);
   const gridRef = useRef(null);
   const lightboxRef = useRef(null);
   const cardRef = useRef(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const categories = [
+    { id: 'all', label: '全部', count: null },
+    { id: 'anime', label: '动漫', count: null },
+    { id: 'landscape', label: '风景', count: null },
+    { id: 'portrait', label: '人物', count: null }
+  ];
 
   useEffect(() => {
     // 进入图库页面启用滚动
@@ -27,6 +38,21 @@ export default function GalleryClient({ initialImages }) {
       document.documentElement.style.overflow = '';
     };
   }, []);
+
+  // 监听 currentCategory 变化，更新图片列表
+  useEffect(() => {
+    setActiveCategory(currentCategory || 'all');
+    setAllImages(initialImages || []);
+  }, [currentCategory, initialImages]);
+
+  const handleCategoryChange = (category) => {
+    setActiveCategory(category);
+    if (category === 'all') {
+      router.push('/gallery');
+    } else {
+      router.push(`/gallery?category=${category}`);
+    }
+  };
 
   useGSAP(() => {
     if (gridRef.current) {
@@ -129,19 +155,37 @@ export default function GalleryClient({ initialImages }) {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#fafafa] dark:bg-black text-neutral-900 dark:text-white selection:bg-neutral-200 dark:selection:bg-white/10 relative transition-colors duration-500">
-      <header className="fixed top-0 left-0 right-0 z-[60] flex justify-between items-center px-8 py-6 pointer-events-none">
-        <Link href="/" className="text-sm tracking-[0.4em] uppercase font-light hover:opacity-50 transition-opacity pointer-events-auto">
+      <header className="fixed top-0 left-0 right-0 z-[60] flex flex-col md:flex-row justify-between items-start md:items-center px-8 py-6 gap-4 pointer-events-none">
+        <Link href="/" className="text-sm tracking-[0.4em] uppercase font-light hover:opacity-50 transition-opacity pointer-events-auto text-white drop-shadow-md">
           Gallery
         </Link>
-        <div className="flex items-center gap-6 pointer-events-auto">
-          <div className="text-[10px] tracking-[0.3em] uppercase opacity-40 font-medium hidden md:block">
-            全部图片 · {allImages.length}
+        
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 pointer-events-auto w-full md:w-auto">
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryChange(cat.id)}
+                className={`text-[10px] tracking-[0.2em] uppercase font-bold px-3 py-1.5 rounded-full transition-all drop-shadow-md ${
+                  activeCategory === cat.id
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-black'
+                    : 'bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 opacity-60 hover:opacity-100 text-white'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
+          
+          <div className="text-[10px] tracking-[0.3em] uppercase opacity-40 font-medium text-white drop-shadow-md">
+            {allImages.length} 张图片
+          </div>
+          
           <ThemeToggle />
         </div>
       </header>
 
-      <main ref={gridRef} className="pt-24 p-2 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:auto-rows-[160px] grid-flow-dense gap-2 pb-20 max-w-[2000px] mx-auto">
+      <main ref={gridRef} className="pt-36 p-2 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] md:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:auto-rows-[160px] grid-flow-dense gap-2 pb-20 max-w-[2000px] mx-auto">
         {allImages.map((img, idx) => (
           <GalleryItem 
             key={idx} 
@@ -172,7 +216,7 @@ export default function GalleryClient({ initialImages }) {
             
             <div className="flex-1 bg-neutral-100 dark:bg-black flex items-center justify-center min-w-0">
               <img 
-                src={encodeURI(`/images/${selectedImage.src}`)} 
+                src={encodeURI(`/${selectedImage.src}`)} 
                 alt="preview" 
                 className="max-w-full max-h-[60vh] md:max-h-[90vh] object-contain"
               />
@@ -234,7 +278,7 @@ export default function GalleryClient({ initialImages }) {
 
               <div className="mt-auto pt-4">
                 <a 
-                  href={`/images/${selectedImage.src}`} 
+                  href={`/${selectedImage.src}`} 
                   download 
                   className="flex items-center justify-center gap-2 w-full bg-neutral-900 dark:bg-white text-white dark:text-black py-3 rounded-xl font-bold text-sm hover:opacity-90 transition-colors no-underline"
                 >
@@ -244,11 +288,7 @@ export default function GalleryClient({ initialImages }) {
             </div>
           </div>
         </div>
-      )}
-
-      <footer className="p-12 text-center opacity-40 text-sm border-t border-neutral-200 dark:border-white/5">
-        <p>© {new Date().getFullYear()} <a href="https://tianhw.top" target="_blank" className="text-inherit no-underline hover:opacity-100 transition-colors">THW</a>. Powered by <a href="https://github.com/H2O-ME/EdgeOne-Random-Picture" target="_blank" className="text-inherit no-underline hover:opacity-100 transition-colors">EdgeOne Pages</a></p>
-      </footer>
+        )}
     </div>
   );
 }

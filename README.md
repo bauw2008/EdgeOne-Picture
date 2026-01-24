@@ -1,9 +1,5 @@
 # EdgeOne Random Picture
 
-一个基于 EdgeOne Pages 构建的随机图片分发系统。
-
-Demo：https://picture.tianhw.top/
-
 ## 🌟 特性
 
 - **🚀 极速响应**：基于 EdgeOne 全球边缘节点实现图片分发。
@@ -52,6 +48,10 @@ pnpm dev
   - 移动端: `/api/random?type=mobile`
 - **JSON 格式**: `/api/random?redirect=false` (返回图片 URL 路径)
 - **图库预览**: `GET /gallery`
+
+## 引用
+
+- [EdgeOne-Random-Picture](https://github.com/H2O-ME/EdgeOne-Random-Picture) — H2O-ME
 
 ## 📄 许可证
 
